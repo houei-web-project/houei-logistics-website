@@ -8,3 +8,5 @@ qa/
 
 __pycache__/
 *.pyc
+
+.site-public/

@@ -1,12 +1,15 @@
 (() => {
   'use strict';
   // Isolate all chat styles so the original website is visually unchanged.
+  const staticPreview = !['localhost', '127.0.0.1'].includes(window.location.hostname);
   const host = document.createElement('houei-recruit-chat');
+  if (staticPreview) host.setAttribute('data-static-preview', '');
   document.body.append(host);
   const root = host.attachShadow({mode:'open'});
   const bubble = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-8 8H5l-3 2v-10a9 9 0 0 1 18 0Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 10h8M7 14h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
   root.innerHTML = `
     <style>
+      :host([data-static-preview]) button:disabled,:host([data-static-preview]) textarea:disabled{cursor:not-allowed}
       :host{position:fixed;right:24px;bottom:24px;z-index:2147483000;font-family:'Zen Kaku Gothic Antique',sans-serif;font-size:16px;line-height:1.65;color:#413f68;text-align:left;letter-spacing:0;box-sizing:border-box}
       *,*::before,*::after{box-sizing:border-box}button,input,textarea{font:inherit}button,a{-webkit-tap-highlight-color:transparent}button{cursor:pointer}button:disabled{cursor:wait}button:focus-visible,a:focus-visible,textarea:focus-visible{outline:3px solid #aaa4e0;outline-offset:3px}[hidden]{display:none!important}svg{width:24px;height:24px;flex-shrink:0}a{color:inherit}
       .launcher{display:flex;align-items:center;gap:13px;min-height:68px;background:#413f68;color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:11px 22px 11px 14px;box-shadow:0 8px 32px #25213e35;text-align:left;transition:transform .2s,box-shadow .2s}
@@ -36,6 +39,14 @@
 
   const $ = s => root.querySelector(s);
   const panel = $('.panel'), launcher = $('.launcher'), messages = $('.messages'), input = $('textarea'), send = $('.send');
+  if (staticPreview) {
+    $('.message .text').textContent = '公開プレビュー：AIチャットは接続準備中です。募集要項・お問い合わせをご利用ください。';
+    $('.suggest-label').hidden = true;
+    input.disabled = true;
+    input.placeholder = 'AIチャットは接続準備中です';
+    send.disabled = true;
+    root.querySelectorAll('.question').forEach(b => b.disabled = true);
+  }
   let busy = false;
   let history = [];
   let composing = false;
@@ -76,12 +87,12 @@
     div.append(by,content);messages.append(div);scroll();return div;
   }
   function setBusy(value) {
-    busy=value; send.disabled=value||!input.value.trim();
-    root.querySelectorAll('.question').forEach(b=>b.disabled=value);
+    busy=value; send.disabled=staticPreview||value||!input.value.trim();
+    root.querySelectorAll('.question').forEach(b=>b.disabled=staticPreview||value);
     panel.setAttribute('aria-busy',String(value));
   }
   async function ask(question,retry=false) {
-    if (busy||!question.trim()) return;
+    if (staticPreview||busy||!question.trim()) return;
     if (!retry) append('user',question);
     setBusy(true);input.value='';input.style.height='auto';
     const pending=append('assistant','');pending.classList.add('pending');
@@ -102,7 +113,7 @@
     } finally { clearTimeout(slow);setBusy(false);scroll(); }
   }
   $('.composer').addEventListener('submit',e=>{e.preventDefault();if(!composing)ask(input.value.trim());});
-  input.addEventListener('input',()=>{send.disabled=busy||!input.value.trim();input.style.height='auto';input.style.height=`${Math.min(100,input.scrollHeight)}px`;});
+  input.addEventListener('input',()=>{send.disabled=staticPreview||busy||!input.value.trim();input.style.height='auto';input.style.height=`${Math.min(100,input.scrollHeight)}px`;});
   input.addEventListener('compositionstart',()=>composing=true);
   input.addEventListener('compositionend',()=>composing=false);
   input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&!composing){e.preventDefault();ask(input.value.trim());}});

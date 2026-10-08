@@ -6,7 +6,6 @@ await mkdir('dist/server', {recursive:true});
 await mkdir('dist/.openai', {recursive:true});
 await cp('public', 'dist/client', {recursive:true});
 await copyFile('public/index.html', 'dist/client/original.html');
-await copyFile('public/renewal.html', 'dist/client/index.html');
 for (const name of await readdir('dist/client')) {
   if (!name.endsWith('.html')) continue;
   const file = `dist/client/${name}`;

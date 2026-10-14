@@ -15,11 +15,11 @@
   const chat = document.querySelector('houei-recruit-chat')?.shadowRoot;
   if (!chat) return;
   const theme = document.createElement('link');
-  theme.rel='stylesheet';theme.href='/renewal/chat-theme.css';chat.append(theme);
+  theme.rel='stylesheet';theme.href='/renewal/chat-theme.css?v=logistics';chat.append(theme);
   const launcher = chat.querySelector('.launcher');
-  launcher.querySelector('small').textContent='LET’S TALK ABOUT YOUR FUTURE';
-  launcher.querySelector('strong').textContent='お仕事のこと、聞いてみませんか？';
-  chat.querySelector('.header h2').textContent='おしごと相談室';
+  launcher.querySelector('small').textContent='RECRUIT SUPPORT';
+  launcher.querySelector('strong').textContent='採用・免許の相談はこちら';
+  chat.querySelector('.header h2').textContent='採用・免許の相談';
   chat.querySelector('.eyebrow').textContent='HOUEI / AI RECRUIT ASSISTANT';
   const jobs = chat.querySelector('.action:not(.primary)');
   jobs.href='#jobs';

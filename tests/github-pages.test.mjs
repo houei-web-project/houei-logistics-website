@@ -111,9 +111,11 @@ test('static artifact includes all pages and assets without changing server-back
   assert.match(proposal, /href="\/houei-logistics-website\/proposal\/style\.css"/);
   assert.match(renewal, /保有車両/);
   assert.match(renewal, /10ｔウイング/);
+  assert.match(renewal, /荷物に合わせて、/);
   assert.match(renewal, /大型未経験の方や女性ドライバーも歓迎しています/);
   assert.match(renewal, /about-vehcle01@2x\.jpg/);
   assert.match(renewal, /recruit-development01@2x\.jpg/);
+  assert.doesNotMatch(renewal, /現行サイト|整理しました|できる仕事が見える/);
   const sitemap = await readFile(join(outputDir, 'sitemap.html'), 'utf8');
   assert.match(sitemap, /サイトマップ/);
   assert.match(sitemap, /https:\/\/houei-web-project\.github\.io\/houei-logistics-website\/proposal\//);

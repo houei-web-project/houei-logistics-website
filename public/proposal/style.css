@@ -169,7 +169,7 @@ h3 { font-size: 21px; line-height: 1.6; font-weight: 500; color: var(--plum); }
 @media (max-width: 1100px) {
   .header-note { display: none; }
   .hero { gap: 35px; width: calc(100% - 80px); min-height: 610px; }
-  .hero h1 { font-size: 40px; }
+  .hero h1 { font-size: clamp(30px, 3.8vw, 40px); }
   .hero-visual img { height: 355px; }
   .section { width: calc(100% - 80px); }
   .section-heading { gap: 35px; }

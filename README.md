@@ -59,3 +59,19 @@ node scripts/qa.mjs
 `/proposal.html` はAIによる業務効率化・採用強化の提案ページです。章ナビゲーション、説明用の作業時間試算、印刷用レイアウトを備えています。CSSとJavaScriptは `public/proposal/` に分離しています。
 
 試算の初期値は仮定であり実績ではありません。実装済みのサイト・管理画面と、公開AI接続・社内業務AIなどの導入案を分けて掲載しています。チャットや管理用の浮動リンクはこのページには挿入しません。
+
+## GitHub Pagesでの公開
+
+提案書: https://houei-web-project.github.io/houei-logistics-website/proposal/
+
+サイト: https://houei-web-project.github.io/houei-logistics-website/
+
+`main` への更新時に `.github/workflows/pages.yml` が検証・ビルドを行い、GitHub Pagesへ自動公開します。手動実行はGitHub Actionsの「Run workflow」から行えます。
+
+```sh
+npm run build:pages
+```
+
+公開用の静的ファイルを `dist/pages/` に生成します。画像・CSS・ページリンクをリポジトリ配下のURLに変換し、`/proposal/` と `/renewal/` の入口も生成します。元の `public/` とSites向けビルドは変更しません。
+
+公開チャットは接続準備中です。認証・D1が必要な管理画面はGitHub Pagesには配置せず、既存の管理サービスへのリンクを使います。既存のSites公開と管理データは維持します。

@@ -4,7 +4,7 @@ import {fileURLToPath, pathToFileURL} from 'node:url';
 
 const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 export const DEFAULT_BASE_PATH = '/houei-logistics-website/';
-export const DEFAULT_ADMIN_URL = 'https://houei-web-project.mastartom.chatgpt.site/admin/';
+export const DEFAULT_ADMIN_URL = 'https://houei-web-project.github.io/houei-logistics-website/sitemap/';
 
 export function normalizeBasePath(value = DEFAULT_BASE_PATH) {
   if (!/^\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_-]*\/?$/.test(value)) {
@@ -104,9 +104,6 @@ export async function buildGitHubPages({
       if (!source.includes('name="robots"')) {
         source = source.replace('</head>', '<meta name="robots" content="noindex,nofollow">\n</head>');
       }
-      if (!local.includes('/') && local !== 'proposal.html' && !source.includes('src="/admin-link.js"')) {
-        source = source.replace('</body>', '<script src="/admin-link.js" defer></script>\n</body>');
-      }
       source = rewriteHtml(source, rewriteUrl);
     } else if (extension === '.css') {
       source = rewriteCss(source, rewriteUrl);
@@ -123,7 +120,7 @@ export async function buildGitHubPages({
     await writeFile(file, source);
   }
 
-  for (const page of ['proposal', 'renewal']) {
+  for (const page of ['proposal', 'renewal', 'sitemap']) {
     const destination = resolve(outputDir, page, 'index.html');
     await mkdir(dirname(destination), {recursive: true});
     await writeFile(destination, await readFile(resolve(outputDir, `${page}.html`)));

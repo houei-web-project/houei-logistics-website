@@ -103,10 +103,15 @@ test('static artifact includes all pages and assets without changing server-back
   const proposal = await readFile(join(outputDir, 'proposal.html'), 'utf8');
   assert.equal(await readFile(join(outputDir, 'proposal/index.html'), 'utf8'), proposal);
   assert.equal(await readFile(join(outputDir, 'renewal/index.html'), 'utf8'), await readFile(join(outputDir, 'renewal.html'), 'utf8'));
+  assert.equal(await readFile(join(outputDir, 'sitemap/index.html'), 'utf8'), await readFile(join(outputDir, 'sitemap.html'), 'utf8'));
   assert.equal(await readFile(join(outputDir, 'original.html'), 'utf8'), await readFile(join(outputDir, 'index.html'), 'utf8'));
-  assert.match(proposal, /href="https:\/\/houei-web-project\.mastartom\.chatgpt\.site\/admin\/"/);
-  assert.match(proposal, /別サービス/);
+  assert.doesNotMatch(proposal, /mastartom\.chatgpt\.site/);
+  assert.match(proposal, /href="https:\/\/houei-web-project\.github\.io\/houei-logistics-website\/sitemap\/"/);
   assert.match(proposal, /href="\/houei-logistics-website\/proposal\/style\.css"/);
+  const sitemap = await readFile(join(outputDir, 'sitemap.html'), 'utf8');
+  assert.match(sitemap, /サイトマップ/);
+  assert.match(sitemap, /https:\/\/houei-web-project\.github\.io\/houei-logistics-website\/proposal\//);
+  assert.match(await readFile(join(outputDir, 'sitemap.xml'), 'utf8'), /https:\/\/houei-web-project\.github\.io\/houei-logistics-website\/sitemap\//);
   await stat(join(outputDir, '.nojekyll'));
   for (const excluded of ['admin', 'server', 'worker', '.env', '.openai']) {
     await assert.rejects(stat(join(outputDir, excluded)), {code: 'ENOENT'});
@@ -116,6 +121,8 @@ test('static artifact includes all pages and assets without changing server-back
   assert.ok(adminLink.includes(DEFAULT_ADMIN_URL));
   assert.match(adminLink, /別サービス/);
   new vm.Script(adminLink);
+  const home = await readFile(join(outputDir, 'index.html'), 'utf8');
+  assert.doesNotMatch(home, /admin-link\.js/);
   const renewalScript = await readFile(join(outputDir, 'renewal/page.js'), 'utf8');
   assert.ok(renewalScript.includes(`${DEFAULT_BASE_PATH}renewal/chat-theme.css`));
   new vm.Script(renewalScript);
@@ -135,8 +142,9 @@ test('static artifact includes all pages and assets without changing server-back
   assert.ok(manifest.icons.every(icon => icon.src.startsWith(DEFAULT_BASE_PATH)));
   let references = 0;
   for await (const file of filesIn(outputDir)) {
-    if (!['.html', '.css'].includes(extname(file))) continue;
+    if (!['.html', '.css', '.xml'].includes(extname(file))) continue;
     const source = await readFile(file, 'utf8');
+    assert.doesNotMatch(source, /mastartom\.chatgpt\.site/, `Unexpected ChatGPT Sites URL in ${file}`);
     const local = relative(outputDir, file).split('\\').join('/');
     const base = `${origin}${DEFAULT_BASE_PATH}${local}`;
     const urls = extname(file) === '.html'

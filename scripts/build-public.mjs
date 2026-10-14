@@ -7,7 +7,7 @@ await mkdir('dist/.openai', {recursive:true});
 await cp('public', 'dist/client', {recursive:true});
 await copyFile('public/index.html', 'dist/client/original.html');
 for (const name of await readdir('dist/client')) {
-  if (!name.endsWith('.html')) continue;
+  if (!name.endsWith('.html') || name === 'proposal.html') continue;
   const file = `dist/client/${name}`;
   const html = await readFile(file,'utf8');
   await writeFile(file,html.replace('</body>','<script src="/admin-link.js" defer></script></body>'));

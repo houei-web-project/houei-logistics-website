@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env server/index.mjs",
     "build:pages": "node scripts/build-github-pages.mjs",
-    "check": "node --check server/index.mjs && node --check server/knowledge.mjs && node --check public/chat/widget.js && node --check public/chat/semantic-demo.mjs",
+    "check": "node --check server/index.mjs && node --check server/knowledge.mjs && node --check public/chat/widget.js && node --check public/chat/semantic-demo.mjs && node --check public/proposal/page.js && node --check public/radio-proposal/page.js",
     "test": "node --test tests/*.test.mjs"
   },
   "devDependencies": {

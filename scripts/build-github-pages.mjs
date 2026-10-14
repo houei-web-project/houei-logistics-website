@@ -120,7 +120,7 @@ export async function buildGitHubPages({
     await writeFile(file, source);
   }
 
-  for (const page of ['proposal', 'renewal', 'sitemap']) {
+  for (const page of ['proposal', 'radio-proposal', 'renewal', 'sitemap']) {
     const destination = resolve(outputDir, page, 'index.html');
     await mkdir(dirname(destination), {recursive: true});
     await writeFile(destination, await readFile(resolve(outputDir, `${page}.html`)));

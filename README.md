@@ -58,13 +58,17 @@ node scripts/qa.mjs
 
 ## 経営層向け提案書
 
-`/proposal.html` はAIによる業務効率化・採用強化の提案ページです。章ナビゲーション、説明用の作業時間試算、印刷用レイアウトを備えています。CSSとJavaScriptは `public/proposal/` に分離しています。
+`/proposal.html` は採用AIの提案ページです。採用チャット、求人原稿・FAQ作成、API使用料金、導入の進め方を短くまとめ、`public/renewal/style.css` の濃紺・ライムのデザインを共用します。専用CSSとJavaScriptは `public/proposal/` に分離しています。
 
-試算の初期値は仮定であり実績ではありません。実装済みのサイト・管理画面・公開AIチャットデモと、本番AI接続・社内業務AIなどの導入案を分けて掲載しています。チャットや管理用の浮動リンクはこのページには挿入しません。
+API料金はGPT-5.4 miniの公式単価を使った導入時の試算で、現在のブラウザー内AIデモはAPI未接続です。1相談あたり累積入力10,000・出力2,000トークン、1ドル150円の仮定で約2.5円とし、月100・500・1,000相談の目安を掲載しています。開発・サーバー・保守・税・追加ツール費用は含みません。チャットや管理用の浮動リンクはこの提案ページには挿入しません。
 
 ## GitHub Pagesでの公開
 
 提案書: https://houei-web-project.github.io/houei-logistics-website/proposal/
+
+IP無線・GPS動態管理の提案書: https://houei-web-project.github.io/houei-logistics-website/radio-proposal/
+
+IP無線提案は `public/radio-proposal.html` と専用CSS・JSで構成し、`public/renewal/style.css` の濃紺・ライムのデザインを共用します。製品写真・参考GPS画面・配布用PDFは `public/radio-proposal/assets/` に配置しています。画像拡大、印刷、PDFダウンロードに対応し、AIチャット・管理用浮動リンクは表示しません。確認済み機能と試行・契約条件を区別した導入検討資料です。
 
 サイト: https://houei-web-project.github.io/houei-logistics-website/
 
@@ -76,6 +80,14 @@ node scripts/qa.mjs
 npm run build:pages
 ```
 
-公開用の静的ファイルを `dist/pages/` に生成します。画像・CSS・ページリンクをリポジトリ配下のURLに変換し、`/proposal/`、`/renewal/`、`/sitemap/` の入口も生成します。元の `public/` とSites向けビルドは変更しません。
+公開用の静的ファイルを `dist/pages/` に生成します。画像・CSS・ページリンクをリポジトリ配下のURLに変換し、`/proposal/`、`/radio-proposal/`、`/renewal/`、`/sitemap/` の入口も生成します。元の `public/` とSites向けビルドは変更しません。
 
 公開チャットはブラウザー内AIデモとして動作します。認証・D1が必要な管理画面はGitHub Pagesには配置せず、サイトマップ内の説明とGitHub上のソース確認に留めます。既存のSites公開と管理データは維持します。
+
+## IP無線提案ページの表示確認
+
+GitHub Pagesビルドを配信した状態で `node scripts/qa-radio-proposal.mjs` を実行します。既定の確認先は `http://127.0.0.1:4328/houei-logistics-website/radio-proposal/` です。`RADIO_QA_URL` で変更できます。1440・1024・768・390・320pxで画像、はみ出し、メニュー、拡大画面とフォーカス復帰、PDFダウンロード、印刷を確認し、結果を `qa/radio-results.json` に保存します。
+
+## 採用AI提案ページの表示確認
+
+同じ配信環境で `node scripts/qa-recruit-proposal.mjs` を実行します。既定の確認先は `http://127.0.0.1:4328/houei-logistics-website/proposal.html` です。`PROPOSAL_QA_URL` で変更できます。5サイズの表示・メニュー・料金計算との整合性・試算条件の開閉・デモ先のチャット起動・印刷と開閉状態の復元を確認し、結果を `qa/recruit-results.json` に保存します。

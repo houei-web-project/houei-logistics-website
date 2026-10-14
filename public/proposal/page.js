@@ -1,76 +1,63 @@
 (() => {
   'use strict';
 
-  document.querySelector('[data-print]')?.addEventListener('click', () => {
-    window.print();
+  document.querySelectorAll('[data-print]').forEach(button => {
+    button.addEventListener('click', () => window.print());
   });
 
-  const inputIds = ['before-minutes', 'after-minutes', 'daily-count', 'monthly-days'];
-  const inputs = inputIds.map(id => document.getElementById(id));
-  const output = document.getElementById('hours-saved');
-  const direction = document.getElementById('savings-direction');
-  const numberFormat = new Intl.NumberFormat('ja-JP', {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
+  const printDetails = [...document.querySelectorAll('.price-details')];
+  let printState = null;
+  window.addEventListener('beforeprint', () => {
+    if (printState) return;
+    printState = printDetails.map(detail => detail.open);
+    printDetails.forEach(detail => { detail.open = true; });
+  });
+  window.addEventListener('afterprint', () => {
+    if (!printState) return;
+    printDetails.forEach((detail, index) => { detail.open = printState[index]; });
+    printState = null;
   });
 
-  function updateEstimate() {
-    let invalid = false;
-    const values = inputs.map(input => {
-      const value = input.valueAsNumber;
-      const valid = input.value.trim() !== '' && input.validity.valid && Number.isFinite(value) && Number.isInteger(value);
-      if (valid) input.removeAttribute('aria-invalid');
-      else input.setAttribute('aria-invalid', 'true');
-      invalid ||= !valid;
-      return value;
+  const menuButton = document.querySelector('.menu-toggle');
+  const menu = document.querySelector('#proposal-nav');
+  const setMenu = (open, returnFocus = false) => {
+    if (!menuButton || !menu) return;
+    menuButton.setAttribute('aria-expanded', String(open));
+    menuButton.setAttribute('aria-label', open ? 'メニューを閉じる' : 'メニューを開く');
+    menu.classList.toggle('is-open', open);
+    if (returnFocus) menuButton.focus();
+  };
+
+  if (menuButton && menu) {
+    menuButton.addEventListener('click', () => setMenu(menuButton.getAttribute('aria-expanded') !== 'true'));
+    menu.addEventListener('click', event => {
+      if (event.target.closest('a')) setMenu(false);
     });
-
-    if (invalid) {
-      output.textContent = '入力を確認';
-      direction.textContent = '各項目を範囲内の整数で入力してください';
-      return;
-    }
-
-    const [before, after, daily, days] = values;
-    const minutes = (before - after) * daily * days;
-    const hours = minutes === 0 ? 0 : minutes / 60;
-    output.textContent = numberFormat.format(hours);
-    direction.textContent = minutes < 0
-      ? '時間 / 月（作業時間が増加）'
-      : minutes > 0
-        ? '時間 / 月の削減'
-        : '時間 / 月（変化なし）';
-  }
-
-  if (output && direction && inputs.every(Boolean)) {
-    inputs.forEach(input => input.addEventListener('input', updateEstimate));
-    updateEstimate();
+    document.addEventListener('click', event => {
+      if (!menu.contains(event.target) && !menuButton.contains(event.target)) setMenu(false);
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && menuButton.getAttribute('aria-expanded') === 'true') setMenu(false, true);
+    });
+    window.matchMedia('(min-width: 961px)').addEventListener('change', () => setMenu(false));
   }
 
   const sections = [...document.querySelectorAll('[data-section]')];
-  const navLinks = [...document.querySelectorAll('.proposal-nav .nav-item')];
-
-  function markCurrent(id) {
-    navLinks.forEach(link => {
-      if (link.getAttribute('href') === `#${id}`) link.setAttribute('aria-current', 'location');
+  const links = [...document.querySelectorAll('#proposal-nav a[href^="#"]')];
+  const markCurrent = id => {
+    links.forEach(link => {
+      if (link.hash === `#${id}`) link.setAttribute('aria-current', 'location');
       else link.removeAttribute('aria-current');
     });
-  }
-
-  navLinks.forEach(link => {
-    link.addEventListener('click', () => markCurrent(link.hash.slice(1)));
-  });
-
+  };
+  links.forEach(link => link.addEventListener('click', () => markCurrent(link.hash.slice(1))));
   if ('IntersectionObserver' in window) {
-    const visibleSections = new Set();
+    const visible = new Set();
     const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) visibleSections.add(entry.target);
-        else visibleSections.delete(entry.target);
-      });
-      const current = sections.find(section => visibleSections.has(section));
+      entries.forEach(entry => entry.isIntersecting ? visible.add(entry.target) : visible.delete(entry.target));
+      const current = sections.find(section => visible.has(section));
       if (current) markCurrent(current.id);
-    }, { rootMargin: '-15% 0px -55% 0px', threshold: 0 });
+    }, { rootMargin: '-15% 0px -50% 0px', threshold: 0 });
     sections.forEach(section => observer.observe(section));
   }
 })();

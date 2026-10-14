@@ -102,8 +102,15 @@ test('static artifact includes all pages and assets without changing server-back
   assert.equal(built.basePath, DEFAULT_BASE_PATH);
   const proposal = await readFile(join(outputDir, 'proposal.html'), 'utf8');
   const renewal = await readFile(join(outputDir, 'renewal.html'), 'utf8');
+  const radioProposal = await readFile(join(outputDir, 'radio-proposal.html'), 'utf8');
   assert.equal(await readFile(join(outputDir, 'proposal/index.html'), 'utf8'), proposal);
   assert.equal(await readFile(join(outputDir, 'renewal/index.html'), 'utf8'), renewal);
+  assert.equal(await readFile(join(outputDir, 'radio-proposal/index.html'), 'utf8'), radioProposal);
+  assert.match(radioProposal, /TLK 150/);
+  assert.match(radioProposal, /href="\/houei-logistics-website\/renewal\/style\.css(?:\?[^" ]*)?"/);
+  assert.match(radioProposal, /src="\/houei-logistics-website\/radio-proposal\/page\.js(?:\?[^" ]*)?"/);
+  assert.match(radioProposal, /href="\/houei-logistics-website\/radio-proposal\/assets\/proposal\.pdf"/);
+  assert.doesNotMatch(radioProposal, /chat\/widget\.js|admin-link\.js/);
   assert.equal(await readFile(join(outputDir, 'sitemap/index.html'), 'utf8'), await readFile(join(outputDir, 'sitemap.html'), 'utf8'));
   assert.equal(await readFile(join(outputDir, 'original.html'), 'utf8'), await readFile(join(outputDir, 'index.html'), 'utf8'));
   assert.doesNotMatch(proposal, /mastartom\.chatgpt\.site/);
@@ -119,6 +126,7 @@ test('static artifact includes all pages and assets without changing server-back
   const sitemap = await readFile(join(outputDir, 'sitemap.html'), 'utf8');
   assert.match(sitemap, /サイトマップ/);
   assert.match(sitemap, /https:\/\/houei-web-project\.github\.io\/houei-logistics-website\/proposal\//);
+  assert.match(sitemap, /https:\/\/houei-web-project\.github\.io\/houei-logistics-website\/radio-proposal\//);
   assert.match(await readFile(join(outputDir, 'sitemap.xml'), 'utf8'), /https:\/\/houei-web-project\.github\.io\/houei-logistics-website\/sitemap\//);
   await stat(join(outputDir, '.nojekyll'));
   for (const excluded of ['admin', 'server', 'worker', '.env', '.openai']) {

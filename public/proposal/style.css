@@ -203,6 +203,7 @@ h3 { font-size: 21px; line-height: 1.6; font-weight: 500; color: var(--plum); }
   .section-top { margin-bottom: 22px; }
   .section-heading { grid-template-columns: 1fr; gap: 22px; margin-bottom: 30px; }
   h2 { font-size: 29px; line-height: 1.7; letter-spacing: .02em; }
+  #operations-title { font-size: clamp(23px, 7.1vw, 29px); }
   .section-lead { font-size: 14px; padding-top: 0; }
   .two-pillars { grid-template-columns: 1fr; }
   .pillar { padding: 28px 0; }

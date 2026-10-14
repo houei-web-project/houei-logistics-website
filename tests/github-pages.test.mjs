@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp, readFile, readdir, rm, stat} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {extname, join, relative, resolve} from 'node:path';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath, pathToFileURL} from 'node:url';
 import vm from 'node:vm';
 import {
   buildGitHubPages, createUrlRewriter, DEFAULT_ADMIN_URL, DEFAULT_BASE_PATH,
@@ -56,7 +56,7 @@ async function* filesIn(directory) {
   }
 }
 
-function runStaticWidget(source) {
+function runPublicWidget(source) {
   const nodes = new Map();
   const makeNode = () => ({
     disabled: false, hidden: false, value: '', textContent: '未経験でも大丈夫？',
@@ -67,7 +67,11 @@ function runStaticWidget(source) {
     querySelectorAll() { return questions; },
   });
   const getNode = selector => {
-    if (!nodes.has(selector)) nodes.set(selector, makeNode());
+    if (!nodes.has(selector)) {
+      const node = makeNode();
+      if (selector === '.send') node.disabled = true;
+      nodes.set(selector, node);
+    }
     return nodes.get(selector);
   };
   const questions = [makeNode(), makeNode()];
@@ -76,18 +80,15 @@ function runStaticWidget(source) {
   let requests = 0;
   const context = {
     document: {createElement: () => host, body: {append() {}}, querySelectorAll: () => []},
-    window: {location: {hostname: 'localhost'}, addEventListener() {}},
+    window: {location: {hostname: 'houei-web-project.github.io', href: 'https://houei-web-project.github.io/houei-logistics-website/', search: ''}, addEventListener() {}},
+    URL, URLSearchParams,
     fetch() { requests++; throw new Error('Static Pages must not call an API.'); },
     setTimeout, clearTimeout, AbortSignal,
   };
   vm.runInNewContext(source, context);
-  assert.match(getNode('.message .text').textContent, /接続準備中/);
-  assert.equal(getNode('textarea').disabled, true);
+  assert.equal(getNode('textarea').disabled, false);
   assert.equal(getNode('.send').disabled, true);
-  assert.ok(questions.every(button => button.disabled));
-  getNode('textarea').value = 'テスト入力';
-  getNode('.composer').events.get('submit')({preventDefault() {}});
-  questions[0].events.get('click')();
+  assert.ok(questions.every(button => !button.disabled));
   assert.equal(requests, 0);
 }
 
@@ -119,9 +120,16 @@ test('static artifact includes all pages and assets without changing server-back
   assert.ok(renewalScript.includes(`${DEFAULT_BASE_PATH}renewal/chat-theme.css`));
   new vm.Script(renewalScript);
   const widget = await readFile(join(outputDir, 'chat/widget.js'), 'utf8');
-  assert.match(widget, /const staticPreview = true;/);
+  assert.ok(widget.includes('semantic-demo.mjs'));
+  assert.ok(widget.includes('requestPublicDemo'));
+  assert.doesNotMatch(widget, /接続準備中/);
   assert.ok(widget.includes(`${DEFAULT_BASE_PATH}recruit.html#requirement`));
-  runStaticWidget(widget);
+  runPublicWidget(widget);
+  const semanticDemoPath = join(outputDir, 'chat/semantic-demo.mjs');
+  await stat(semanticDemoPath);
+  const semanticDemo = await import(pathToFileURL(semanticDemoPath).href);
+  assert.equal(semanticDemo.source.url, 'https://houei-butsuryu.co.jp/recruit.html');
+  assert.deepEqual(semanticDemo.chooseTopics([{id:'salary',score:.63},{id:'holidays',score:.59}]).map(item => item.id), ['salary','holidays']);
 
   const manifest = JSON.parse(await readFile(join(outputDir, 'site.webmanifest'), 'utf8'));
   assert.ok(manifest.icons.every(icon => icon.src.startsWith(DEFAULT_BASE_PATH)));

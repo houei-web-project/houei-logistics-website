@@ -111,11 +111,6 @@ export async function buildGitHubPages({
     } else if (extension === '.css') {
       source = rewriteCss(source, rewriteUrl);
     } else if (extension === '.js') {
-      if (local === 'chat/widget.js') {
-        const previewDeclaration = /const staticPreview = [^;]+;/;
-        if (!previewDeclaration.test(source)) throw new Error('The chat preview guard has changed; update the static build before publishing.');
-        source = source.replace(previewDeclaration, 'const staticPreview = true;');
-      }
       if (local === 'admin-link.js') {
         source = source.replace("'⚙ Admin'", "'⚙ Admin（別サービス）'")
           .replace('管理者ログイン・採用ナレッジ管理', '管理者ログイン・採用ナレッジ管理（別サービス）');

@@ -1,15 +1,20 @@
 (() => {
   'use strict';
   // Isolate all chat styles so the original website is visually unchanged.
-  const staticPreview = !['localhost', '127.0.0.1'].includes(window.location.hostname);
+  const localHostnames = ['localhost', '127.0.0.1', '[::1]'];
+  const forceBrowserDemo = new URLSearchParams(window.location.search).get('chat') === 'browser';
+  const publicDemo = forceBrowserDemo || !localHostnames.includes(window.location.hostname);
+  const widgetScriptUrl = document.currentScript?.src || new URL('/chat/widget.js', window.location.href).href;
   const host = document.createElement('houei-recruit-chat');
-  if (staticPreview) host.setAttribute('data-static-preview', '');
+  if (publicDemo) host.setAttribute('data-browser-demo', '');
   document.body.append(host);
   const root = host.attachShadow({mode:'open'});
   const bubble = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-8 8H5l-3 2v-10a9 9 0 0 1 18 0Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 10h8M7 14h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  const introText = publicDemo
+    ? 'こんにちは。公開情報をもとに採用の質問へ案内するAIデモです。初回のみAIモデルの読み込みに少し時間がかかります。'
+    : 'こんにちは。豊栄物流のAI採用アシスタントです。\n仕事内容や免許の取得支援、職場見学など、気になることをお気軽にお聞きください。';
   root.innerHTML = `
     <style>
-      :host([data-static-preview]) button:disabled,:host([data-static-preview]) textarea:disabled{cursor:not-allowed}
       :host{position:fixed;right:24px;bottom:24px;z-index:2147483000;font-family:'Zen Kaku Gothic Antique',sans-serif;font-size:16px;line-height:1.65;color:#413f68;text-align:left;letter-spacing:0;box-sizing:border-box}
       *,*::before,*::after{box-sizing:border-box}button,input,textarea{font:inherit}button,a{-webkit-tap-highlight-color:transparent}button{cursor:pointer}button:disabled{cursor:wait}button:focus-visible,a:focus-visible,textarea:focus-visible{outline:3px solid #aaa4e0;outline-offset:3px}[hidden]{display:none!important}svg{width:24px;height:24px;flex-shrink:0}a{color:inherit}
       .launcher{display:flex;align-items:center;gap:13px;min-height:68px;background:#413f68;color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:11px 22px 11px 14px;box-shadow:0 8px 32px #25213e35;text-align:left;transition:transform .2s,box-shadow .2s}
@@ -31,28 +36,19 @@
       <header class="header"><span class="header-icon">${bubble}</span><div class="header-copy"><span class="eyebrow">HOUEI / RECRUIT ASSISTANT</span><h2>AI採用相談</h2></div><button class="close" aria-label="チャットを閉じる"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" stroke="currentColor" stroke-width="1.6"/></svg></button></header>
       <div class="intro-label">応募する前に、気になることを。</div>
       <div class="messages" role="log" aria-live="polite" aria-relevant="additions text" aria-label="相談の会話">
-        <div class="message"><div class="byline"><span class="mark">AI</span>豊栄物流 採用アシスタント</div><div class="text">こんにちは。豊栄物流のAI採用アシスタントです。\n仕事内容や免許の取得支援、職場見学など、気になることをお気軽にお聞きください。</div><p class="suggest-label">例えば、こんなことを聞けます</p><div class="questions"><button class="question">未経験でも大丈夫？</button><button class="question">大型免許がなくても応募できる？</button><button class="question">給与や休日を知りたい</button><button class="question">職場を見学できますか？</button></div></div>
+        <div class="message"><div class="byline"><span class="mark">AI</span>豊栄物流 採用アシスタント</div><div class="text">${introText}</div><p class="suggest-label">例えば、こんなことを聞けます</p><div class="questions"><button class="question">未経験でも大丈夫？</button><button class="question">大型免許がなくても応募できる？</button><button class="question">給与や休日を知りたい</button><button class="question">職場を見学できますか？</button></div></div>
       </div>
       <nav class="actions" aria-label="採用情報へのリンク"><a class="action" href="/recruit.html#requirement">募集要項を見る</a><a class="action primary" href="https://houei-butsuryu.co.jp/contact.html" target="_blank" rel="noopener noreferrer">見学・応募を相談する</a></nav>
-      <div class="composer-wrap"><form class="composer"><textarea rows="1" maxlength="600" aria-label="採用についての質問" placeholder="気になることを入力…" required></textarea><button class="send" type="submit" aria-label="質問を送信" disabled>送信</button></form><p class="note">AIの回答は公開情報に基づきます。最新条件は担当者へ。<br>試用版：このチャットで応募・予約は確定しません。</p></div>
+      <div class="composer-wrap"><form class="composer"><textarea rows="1" maxlength="600" aria-label="採用についての質問" placeholder="気になることを入力…" required></textarea><button class="send" type="submit" aria-label="質問を送信" disabled>送信</button></form><p class="note">AIの回答は公開情報に基づく試用版です。最新条件は担当者へ。<br>このチャットで応募・予約は確定しません。氏名・電話番号などの個人情報は入力しないでください。</p></div>
     </section>`;
 
   const $ = s => root.querySelector(s);
   const panel = $('.panel'), launcher = $('.launcher'), messages = $('.messages'), input = $('textarea'), send = $('.send');
-  if (staticPreview) {
-    $('.message .text').textContent = '公開プレビュー：AIチャットは接続準備中です。募集要項・お問い合わせをご利用ください。';
-    $('.suggest-label').hidden = true;
-    input.disabled = true;
-    input.placeholder = 'AIチャットは接続準備中です';
-    send.disabled = true;
-    root.querySelectorAll('.question').forEach(b => b.disabled = true);
-  }
   let busy = false;
   let history = [];
   let composing = false;
-  let opened = false;
+  let demoModulePromise = null;
   function open() {
-    opened = true;
     panel.hidden = false;
     launcher.hidden = true;
     launcher.setAttribute('aria-expanded','true');
@@ -60,7 +56,6 @@
     resize();
   }
   function close() {
-    opened = false;
     panel.hidden = true;
     launcher.hidden = false;
     launcher.setAttribute('aria-expanded','false');
@@ -87,33 +82,52 @@
     div.append(by,content);messages.append(div);scroll();return div;
   }
   function setBusy(value) {
-    busy=value; send.disabled=staticPreview||value||!input.value.trim();
-    root.querySelectorAll('.question').forEach(b=>b.disabled=staticPreview||value);
+    busy=value; send.disabled=value||!input.value.trim();
+    root.querySelectorAll('.question').forEach(b=>b.disabled=value);
     panel.setAttribute('aria-busy',String(value));
   }
+  function updatePending(pending, text) {
+    const status = pending.querySelector('.pending-status');
+    if (status && text) {
+      status.textContent = text;
+      scroll();
+    }
+  }
+  async function requestPublicDemo(question, pending) {
+    if (!demoModulePromise) demoModulePromise = import(new URL('semantic-demo.mjs', widgetScriptUrl).href);
+    const {answer} = await demoModulePromise;
+    return answer(question, history, event => updatePending(pending, event?.message));
+  }
+  async function requestServerAnswer(question) {
+    const response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:question,history}),signal:AbortSignal.timeout(125000)});
+    const data=await response.json();
+    if(!response.ok||!data.answer)throw new Error(data.error||'回答を取得できませんでした。もう一度お試しください。');
+    return {answer:data.answer,source:{url:'https://houei-butsuryu.co.jp/recruit.html',title:'公式サイトの採用情報'}};
+  }
   async function ask(question,retry=false) {
-    if (staticPreview||busy||!question.trim()) return;
+    if (busy||!question.trim()) return;
     if (!retry) append('user',question);
     setBusy(true);input.value='';input.style.height='auto';
     const pending=append('assistant','');pending.classList.add('pending');
-    pending.querySelector('.text').innerHTML='<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>採用情報を確認しています…</span>';
-    const slow=setTimeout(()=>{const span=pending.querySelector('.text > span:last-child');if(span)span.textContent='回答をまとめています。もう少しお待ちください…';},15000);
+    pending.querySelector('.text').innerHTML='<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="pending-status">採用情報を確認しています…</span>';
+    const slow=setTimeout(()=>updatePending(pending,publicDemo?'初回のAIモデル読み込み中です。もう少しお待ちください…':'回答をまとめています。もう少しお待ちください…'),15000);
     try {
-      const response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:question,history}),signal:AbortSignal.timeout(125000)});
-      const data=await response.json();
-      if(!response.ok||!data.answer)throw new Error(data.error||'回答を取得できませんでした。もう一度お試しください。');
+      const data=publicDemo ? await requestPublicDemo(question,pending) : await requestServerAnswer(question);
       pending.remove();
       const result=append('assistant',data.answer);
-      const link=document.createElement('a');link.className='source';link.href='https://houei-butsuryu.co.jp/recruit.html';link.target='_blank';link.rel='noopener noreferrer';link.textContent='参照：公式サイトの採用情報';result.append(link);
+      const link=document.createElement('a');link.className='source';link.href=data.source?.url||'https://houei-butsuryu.co.jp/recruit.html';link.target='_blank';link.rel='noopener noreferrer';link.textContent='参照：公式サイトの採用情報';result.append(link);
       history.push({role:'user',content:question},{role:'assistant',content:data.answer});history=history.slice(-6);
     } catch(error) {
       pending.remove();
-      const result=append('assistant',error.name==='TimeoutError'?'回答に時間がかかっています。もう一度お試しいただくか、募集要項をご覧ください。':error.message);
+      const message = error.name==='TimeoutError'
+        ? '回答に時間がかかっています。もう一度お試しいただくか、募集要項をご覧ください。'
+        : error.message;
+      const result=append('assistant',message);
       result.classList.add('error');const retryButton=document.createElement('button');retryButton.className='retry';retryButton.textContent='もう一度試す';retryButton.addEventListener('click',()=>{result.remove();ask(question,true);});result.append(retryButton);
     } finally { clearTimeout(slow);setBusy(false);scroll(); }
   }
   $('.composer').addEventListener('submit',e=>{e.preventDefault();if(!composing)ask(input.value.trim());});
-  input.addEventListener('input',()=>{send.disabled=staticPreview||busy||!input.value.trim();input.style.height='auto';input.style.height=`${Math.min(100,input.scrollHeight)}px`;});
+  input.addEventListener('input',()=>{send.disabled=busy||!input.value.trim();input.style.height='auto';input.style.height=`${Math.min(100,input.scrollHeight)}px`;});
   input.addEventListener('compositionstart',()=>composing=true);
   input.addEventListener('compositionend',()=>composing=false);
   input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&!composing){e.preventDefault();ask(input.value.trim());}});

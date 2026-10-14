@@ -35,7 +35,7 @@ try{
     assert.equal(await page.locator('.service-copy details').first().evaluate(d=>d.open),true);
     await page.locator('.faq-list summary').first().click();
     assert.equal(await page.locator('.faq-list details').first().evaluate(d=>d.open),true);
-    await page.getByRole('button',{name:'AIに仕事のことを聞く',exact:true}).click();
+    await page.getByRole('button',{name:'仕事のことを相談する',exact:true}).click();
     const panel=page.locator('houei-recruit-chat').locator('.panel');
     assert.equal(await panel.isVisible(),true);
     await page.waitForTimeout(300);

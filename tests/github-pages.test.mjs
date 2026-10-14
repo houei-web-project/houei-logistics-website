@@ -56,43 +56,99 @@ async function* filesIn(directory) {
   }
 }
 
-function runPublicWidget(source) {
-  const nodes = new Map();
-  const makeNode = () => ({
-    disabled: false, hidden: false, value: '', textContent: '未経験でも大丈夫？',
-    style: {setProperty() {}}, events: new Map(),
-    setAttribute() {}, append() {},
-    addEventListener(name, callback) { this.events.set(name, callback); },
-    querySelector(selector) { return getNode(selector); },
-    querySelectorAll() { return questions; },
-  });
-  const getNode = selector => {
-    if (!nodes.has(selector)) {
-      const node = makeNode();
-      if (selector === '.send') node.disabled = true;
-      nodes.set(selector, node);
+function runPublicWidget(source, hostname = 'houei-web-project.github.io', search = '') {
+  let activeElement;
+  class Node {
+    constructor(tag = 'div') {
+      this.tagName = tag; this.children = []; this.dataset = {}; this.attributes = {};
+      this.events = new Map(); this.style = {setProperty() {}};
+      this.hidden = false; this.isConnected = true; this.className = ''; this.textContent = '';
     }
-    return nodes.get(selector);
-  };
-  const questions = [makeNode(), makeNode()];
-  const shadow = makeNode();
-  const host = {...makeNode(), attachShadow: () => shadow};
+    append(...children) { this.children.push(...children); }
+    replaceChildren(...children) { this.children = children; }
+    setAttribute(key, value) { this.attributes[key] = value; }
+    addEventListener(name, callback) { this.events.set(name, callback); }
+    click() { this.events.get('click')?.({target: this}); }
+    focus() { activeElement = this; }
+    scrollIntoView() {}
+    contains(node) { return this === node || this.children.some(child => child.contains(node)); }
+    matches(selector) {
+      if (selector === '[data-question-id]') return 'questionId' in this.dataset;
+      if (selector === '[data-reset-questions]') return 'resetQuestions' in this.dataset;
+      const question = selector.match(/^\[data-question-id="([^"\]]+)"\]$/);
+      if (question) return this.dataset.questionId === question[1];
+      if (selector.startsWith('.')) return selector.slice(1).split('.').every(c => this.className.split(' ').includes(c));
+      return this.tagName === selector;
+    }
+    querySelectorAll(selector) {
+      return this.children.flatMap(child => [...(child.matches(selector) ? [child] : []), ...child.querySelectorAll(selector)]);
+    }
+    querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
+  }
+  const root = new Node();
+  const panel = new Node('section'); panel.className = 'panel'; panel.hidden = true;
+  const launcher = new Node('button'); launcher.className = 'launcher';
+  const messages = new Node(); messages.className = 'messages';
+  const close = new Node('button'); close.className = 'close';
+  panel.append(messages, close); root.append(panel, launcher);
+  const host = new Node('houei-recruit-chat'); host.attachShadow = () => root;
   let requests = 0;
   const context = {
-    document: {createElement: () => host, body: {append() {}}, querySelectorAll: () => []},
-    window: {location: {hostname: 'houei-web-project.github.io', href: 'https://houei-web-project.github.io/houei-logistics-website/', search: ''}, addEventListener() {}},
-    URL, URLSearchParams,
-    fetch() { requests++; throw new Error('Static Pages must not call an API.'); },
-    setTimeout, clearTimeout, AbortSignal,
+    HTMLElement: Node,
+    document: {createElement: tag => tag === 'houei-recruit-chat' ? host : new Node(tag), body: new Node(), querySelectorAll: () => [], get activeElement() { return activeElement; }},
+    window: {location: {hostname, search, href: `https://${hostname}/${search}`}, addEventListener() {}},
+    fetch() { requests++; throw new Error('The selection FAQ must not call an API.'); },
   };
   vm.runInNewContext(source, context);
-  assert.equal(getNode('textarea').disabled, false);
-  assert.equal(getNode('.send').disabled, true);
-  assert.ok(questions.every(button => !button.disabled));
+  assert.doesNotMatch(source, /\bfetch\s*\(|\bimport\s*\(|<textarea|class="send"|semantic-demo\.mjs|requestPublicDemo/);
+  assert.equal(messages.querySelectorAll('[data-question-id]').length, 11);
+  activeElement = launcher;
+  launcher.click();
+  assert.equal(panel.hidden, false);
+  assert.equal(launcher.hidden, true);
+  assert.equal(launcher.attributes['aria-expanded'], 'true');
+  assert.equal(activeElement.dataset.questionId, 'experience');
+  const expected = {
+    experience: '先輩社員が同乗', license: '会社負担', salary: '28万〜32万円',
+    holidays: '土曜（隔週）', hours: '具体的な勤務時間', job: 'パレット物',
+    location: '1789番地の90', visit: '予約は確定しません', apply: '0595-82-3011',
+    women: '女性ドライバーも歓迎', age: '「59歳迄」と「年齢不問」',
+  };
+  for (const [id, phrase] of Object.entries(expected)) {
+    const button = messages.querySelector(`[data-question-id="${id}"]`);
+    assert.ok(button, `Missing question ${id}`);
+    button.click(); // Assert before any promise or timer can settle: the answer is synchronous.
+    const answer = messages.querySelector('.message.assistant');
+    assert.equal(answer.dataset.answerId, id);
+    assert.ok(answer.querySelector('.text').textContent.includes(phrase), `Wrong answer for ${id}`);
+    assert.equal(activeElement, answer);
+    assert.equal(answer.querySelector('.source').href, 'https://houei-butsuryu.co.jp/recruit.html');
+    assert.equal(messages.querySelector('.message.user').querySelector('.text').textContent, button.textContent);
+    messages.querySelector('[data-reset-questions]').click();
+    assert.equal(messages.querySelectorAll('[data-question-id]').length, 11);
+    assert.equal(activeElement.dataset.questionId, id, 'Focus returns to the selected question');
+    assert.equal(messages.querySelector('.message.assistant'), null, 'Previous answer is cleared');
+  }
+  let prevented = false;
+  root.events.get('keydown')({key: 'Escape', preventDefault() { prevented = true; }});
+  assert.equal(prevented, true);
+  assert.equal(panel.hidden, true);
+  assert.equal(launcher.hidden, false);
+  assert.equal(activeElement, launcher);
+  assert.equal(launcher.attributes['aria-expanded'], 'false');
+  launcher.click(); close.click();
+  assert.equal(panel.hidden, true);
   assert.equal(requests, 0);
 }
 
-test('static artifact includes all pages and assets without changing server-backed source', async t => {
+test('all fixed questions answer synchronously without AI on local, browser-demo and public hosts', async () => {
+  const source = await readFile(resolve(projectRoot, 'public/chat/widget.js'), 'utf8');
+  for (const hostname of ['localhost', '127.0.0.1', '::1', 'houei-web-project.github.io']) {
+    for (const search of ['', '?chat=browser']) runPublicWidget(source, hostname, search);
+  }
+});
+
+test('static artifact includes all pages and assets without changing source', async t => {
   const temporary = await mkdtemp(join(tmpdir(), 'houei-pages-test-'));
   t.after(() => rm(temporary, {recursive: true, force: true}));
   const outputDir = join(temporary, 'pages');
@@ -143,8 +199,8 @@ test('static artifact includes all pages and assets without changing server-back
   assert.ok(renewalScript.includes(`${DEFAULT_BASE_PATH}renewal/chat-theme.css`));
   new vm.Script(renewalScript);
   const widget = await readFile(join(outputDir, 'chat/widget.js'), 'utf8');
-  assert.ok(widget.includes('semantic-demo.mjs'));
-  assert.ok(widget.includes('requestPublicDemo'));
+  assert.ok(widget.includes('faqItems'));
+  assert.doesNotMatch(widget, /semantic-demo\.mjs|requestPublicDemo|\/api\/chat/);
   assert.doesNotMatch(widget, /接続準備中/);
   assert.ok(widget.includes(`${DEFAULT_BASE_PATH}recruit.html#requirement`));
   runPublicWidget(widget);

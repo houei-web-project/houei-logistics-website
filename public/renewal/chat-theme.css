@@ -1,5 +1,26 @@
 :host{color:#17005b!important;right:22px!important;bottom:22px;--navy:#17005b;--navy-deep:#070b2f;--lime:#8bd000;--steel:#eef2f6;--text:#202632;--muted:#5f6875;--line:#d9e1e8}
+button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline-color:#8bd000}
 .launcher{background:#17005b;border:1px solid #8bd000;border-radius:4px;padding:12px 20px 12px 12px;min-height:64px;gap:12px;box-shadow:0 12px 28px rgba(7,11,47,.28)}
-.launcher-icon{color:#17005b;background:#8bd000;width:40px;height:40px;border-radius:3px}.launcher small{color:#8bd000;font-size:8px;letter-spacing:.14em;font-weight:800}.launcher strong{font-size:13px;letter-spacing:.02em;font-weight:800}.launcher:hover{background:#070b2f}
-.panel{background:#fff;border-color:#d9e1e8;border-radius:4px;box-shadow:0 24px 70px rgba(7,11,47,.28)}.header{background:#17005b;padding:20px;border-bottom:5px solid #8bd000}.header-icon{color:#8bd000}.eyebrow{color:#8bd000;font-weight:800}.header h2{font-weight:800;letter-spacing:.04em}.intro-label{background:#eef2f6;color:#17005b;font-weight:800;font-size:12px;padding:11px}.messages{background:#f5f7fa;scrollbar-color:#17005b transparent}.byline{color:#5f6875}.mark{background:#17005b;color:#fff}.text{border-color:#d9e1e8;color:#202632;border-radius:2px;background:#fff}.user .text{background:#17005b;border-color:#17005b;color:#fff;border-radius:2px}.question{border-color:#d9e1e8;color:#17005b;background:#fff;border-radius:3px;font-weight:700}.question:hover{background:#eff9dc;border-color:#8bd000}.source{color:#5f6875}.suggest-label{color:#5f6875;font-weight:800}.actions{background:#fff;border-color:#d9e1e8}.action{border-color:#17005b;color:#17005b;background:#fff;border-radius:3px;font-weight:800}.action:hover{background:#eff9dc;border-color:#8bd000}.action.primary{background:#8bd000;border-color:#8bd000;color:#17005b}.action.primary:hover{background:#a1eb14}.composer-wrap{background:#fff}.composer{border-color:#d9e1e8;border-radius:3px}.composer:focus-within{border-color:#8bd000;box-shadow:0 0 0 2px rgba(139,208,0,.35)}.composer textarea{color:#202632}.send{background:#17005b;color:white;border-radius:3px}.note{color:#5f6875}.retry{color:#17005b;border-color:#d9e1e8;border-radius:3px}.pending .text{color:#5f6875}.dots i{background:#8bd000}
-@media(max-width:650px){:host{right:12px!important}.launcher{min-height:58px;padding:10px 17px 10px 10px;gap:9px}.launcher strong{font-size:11px;letter-spacing:0}.launcher small{font-size:7px;letter-spacing:.075em}.launcher-icon{width:34px;height:34px}.panel{border-radius:4px}}
+.launcher-icon{color:#17005b;background:#8bd000;width:40px;height:40px;border-radius:3px}
+.launcher small{color:#8bd000;font-size:8px;letter-spacing:.14em;font-weight:800}
+.launcher strong{font-size:13px;letter-spacing:.02em;font-weight:800}
+.launcher:hover{background:#070b2f}
+.panel{background:#fff;border-color:#d9e1e8;border-radius:4px;box-shadow:0 24px 70px rgba(7,11,47,.28)}
+.header{background:#17005b;padding:20px;border-bottom:5px solid #8bd000}
+.header-icon{color:#8bd000}.eyebrow{color:#8bd000;font-weight:800}.header h2{font-weight:800;letter-spacing:.04em}
+.intro-label{background:#eef2f6;color:#17005b;font-weight:800;font-size:12px;padding:11px}
+.messages{background:#f5f7fa;scrollbar-color:#17005b transparent}.byline{color:#5f6875}
+.text{border-color:#d9e1e8;color:#202632;border-radius:2px;background:#fff}
+.user .text{background:#17005b;border-color:#17005b;color:#fff;border-radius:2px}
+.questions{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.question{border-color:#d9e1e8;color:#17005b;background:#fff;border-radius:3px;font-weight:700;min-height:52px}
+.question::after{color:#6b9f00}.question:hover{background:#eff9dc;border-color:#8bd000}
+.source{color:#5f6875}
+.reset-questions{color:#17005b;background:#fff;border-color:#17005b;border-radius:3px;font-weight:800}
+.reset-questions:hover{background:#eff9dc;border-color:#8bd000}
+.actions{background:#fff;border-color:#d9e1e8}
+.action{border-color:#17005b;color:#17005b;background:#fff;border-radius:3px;font-weight:800}
+.action:hover{background:#eff9dc;border-color:#8bd000}
+.action.primary{background:#8bd000;border-color:#8bd000;color:#17005b}.action.primary:hover{background:#a1eb14}
+.note{color:#5f6875;background:#fff}
+@media(max-width:650px){:host{right:12px!important}.launcher{min-height:58px;padding:10px 17px 10px 10px;gap:9px}.launcher strong{font-size:11px;letter-spacing:0}.launcher small{font-size:7px;letter-spacing:.075em}.launcher-icon{width:34px;height:34px}.panel{border-radius:4px}.header{padding:16px}.question{padding:10px;min-height:50px}}
